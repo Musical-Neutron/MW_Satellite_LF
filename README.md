@@ -6,7 +6,7 @@
 A code to calculate the luminosity function of Milky Way (MW) satellite galaxies
 using Approximate Bayesian Computation. The analysis uses as input only the
 observed satellite galaxies in the SDSS and DES surveys, and five DM-only
-simulations of MW-like haloes from the Aquarius simulation suite (Aq-A - Aq-F).
+simulations of MW-like haloes from the Aquarius simulation suite (Aq-A – Aq-E).
 Input data of the correct format is supplied for all known confirmed and
 candidate satellite galaxies as of February 2018.
 
@@ -29,7 +29,7 @@ under `home/Input_Data`, in the format:
 Each group in this file corresponds to a different subhalo population, either:
 * 'Original', the original population from the simulation
 * 'Original+Orphan', with orphan galaxies identified and added as specified in
-    [Newton+(2017)](https://arxiv.org/abs/1708.04247)
+    [Newton+(2018)](https://doi.org/10.1093/mnras/sty1085)
 * 'Original+Orphan+Baryons', the above but with baryonic correction.
 
 For the [compute_satellites.py](/compute_satellites.py) script to work correctly
@@ -66,7 +66,7 @@ In order, the columns of this file are as follows:
 ### 3.1 Survey Flags
     '0' excludes a satellite from analysis with a particular survey.   
     '1' in 'Cl' and another column: satellite will be treated classically when
-        analysis is carried out with that survey.   
+        analysis is carried out with the specified survey.   
     '2' all other flags ignored. Satellite will be treated appropriately
         according to the survey it is in.   
         Note: '2' in the 'Cl' column indicates the 'original classicals'. These
@@ -92,9 +92,9 @@ Each column contains three rows:
 ```
     'Area' : Survey area in square degrees
     'a'    : Fitting parameter for the particular search algorithm, for use in
-             Equation (3) of Newton+(2017) (https://arxiv.org/abs/1708.04247).
+             Equation (3) of Newton+(2018) (https://doi.org/10.1093/mnras/sty1085).
     'b'    : Fitting parameter for the particular search algorithm, for use in
-             Equation (3) of Newton+(2017) (https://arxiv.org/abs/1708.04247).
+             Equation (3) of Newton+(2018) (https://doi.org/10.1093/mnras/sty1085).
 ```
 
 ## 5.0 Ouput data file structure
@@ -124,7 +124,8 @@ The groups correspond to those described in Section 2.0.
 ## 6.0 Citations
 This code and accompanying input data are freely available. If using this code,
 a derivative work or results thereof, please cite:
-[Newton+(2017)](https://arxiv.org/abs/1708.04247)
+[Newton & Cautun (2017)](https://doi.org/10.5281/zenodo.1205621), and
+[Newton+(2018)](https://doi.org/10.1093/mnras/sty1085)
 
 If you have any questions or would like help in using the code, please email:
 > oliver 'dot' j 'dot' newton 'at' durham.ac.uk
