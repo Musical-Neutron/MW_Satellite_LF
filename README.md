@@ -128,4 +128,4 @@ a derivative work or results thereof, please cite:
 [Newton+(2018)](https://doi.org/10.1093/mnras/sty1085)
 
 If you have any questions or would like help in using the code, please email:
-> oliver 'dot' j 'dot' newton 'at' durham.ac.uk
+> onewton 'at' cft.edu.pl
