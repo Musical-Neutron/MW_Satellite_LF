@@ -13,6 +13,8 @@ output_data = 'Output_Data'
 # Analysis settings
 r_out = 300.
 r_out_text = '300'
+n_sightings = 1000
+vmax_cut = 10.  # km/s
 
 # Mass of the Aquarius haloes in units of 'Msun/h'.
 aq_mass = {
