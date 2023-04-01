@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import os
 import numpy as np
@@ -61,7 +61,7 @@ def main():
    ************************************************************************
    '''
    if len(sys.argv) not in [6,7,8,9]:
-      print help
+      print(help)
       sys.exit(1)
    
    inputSubhaloFile  = sys.argv[1]
@@ -93,7 +93,7 @@ def main():
    
    for grp_i,grp_item in enumerate(group_list):
       # Read in the subhaloes
-      print "Reading subhalo data from file '{}' ...".format(inputSubhaloFile)
+      print("Reading subhalo data from file '{}' ...".format(inputSubhaloFile))
       with h5py.File( inputSubhaloFile, 'r' ) as data:
          pos    = np.asarray( data[grp_item+'/cop'] )
          vPeak  = np.asarray( data[grp_item+'/vpeak'] )
@@ -226,7 +226,7 @@ def main():
          pos_Sun = np.zeros( 3, np.float32 )
          """ For k=0, sets observer to x=+Sun_dis, k=1 -> x=-Sun_dis,
          k->2 y=+Sun_dis, and so on. """
-         pos_Sun[k/2] = Sun_dis * ( 1 - 2 * (k%2) )
+         pos_Sun[int(k/2)] = Sun_dis * ( 1 - 2 * (k%2) )
          print ("Observer loop k = {} with Sun position "
                 "at {} ".format( k+1, pos_Sun ))
          
@@ -748,7 +748,7 @@ def writeOutput(outputFile, programOptionsDesc, data_out, groups=False):
    Returns:
       None.
    """
-   print "Writing the output data file '%s' ..." % outputFile
+   print("Writing the output data file '{}' ...".format(outputFile))
    with h5py.File( outputFile, 'w' ) as hf:
       if groups:
          for g_i,g_item in enumerate(groups):
