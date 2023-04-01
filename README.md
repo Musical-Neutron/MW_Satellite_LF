@@ -1,7 +1,9 @@
 # Guidance for the MW satellite LF extrapolation scripts
-**Last reviewed:** v1.0.0
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1205622.svg)](https://doi.org/10.5281/zenodo.1205622)
+[![Build and test](https://github.com/Musical-Neutron/MW_Satellite_LF/actions/workflows/test_package.yml/badge.svg?branch=master)](https://github.com/Musical-Neutron/MW_Satellite_LF/actions/workflows/test_package.yml)
+
+**Last reviewed:** v1.0.0
 
 A code to calculate the luminosity function of Milky Way (MW) satellite galaxies
 using Approximate Bayesian Computation. The analysis uses as input only the
