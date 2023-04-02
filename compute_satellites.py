@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import sys
 
 import h5py
@@ -41,35 +40,35 @@ def main():
     programName = sys.argv[0].rsplit('/')[-1]
     programOptionsDesc = programName + ' ' + ' '.join(sys.argv[1:])
     help = '''
-   ************************************************************************
-   Computes the expected number of faint satellites given an observed
-   number of satellites from a partial survey. This function requires 5
-   command-line arguments in the below order. An additional 3 arguments
-   may also be provided.
-   
-   1 : Input subhalo file  A post-processed subhalo file of the format
-                           given in the documentation.
-   2 : Host M200           The virial mass of the input host halo in
-                           comoving coordinates (Msun h^-1).
-   3 : Observation file    Observed satellites in the format given in the
-                           documenation.
-   4 : Target M200         The target (rescaled) virial mass of the host
-                           halo in comoving coordinates (Msun h^-1).
-   5 : Output file         The name of the output file to write luminosity
-                           functions to.
-   *6: N_sightings         The number of mock surveys per observer
-                           position. DEFAULT: 1000.
-   *7: Max radius          The fiducial radius inside which estimates are
-                           made (in kpc). DEFAULT: 400.
-   *8: Min vpeak           Imposes a cut greater than this value in subhalo
-                           peak maximum circular velocity (in km/s).
-                           DEFAULT: 10.
-   
-   where the * arguments are optional.
-   NOTE: If optional arguments are given, they must be specified in the
-   above order.
-   ************************************************************************
-   '''
+    ************************************************************************
+    Computes the expected number of faint satellites given an observed
+    number of satellites from a partial survey. This function requires 5
+    command-line arguments in the below order. An additional 3 arguments
+    may also be provided.
+
+    1 : Input subhalo file  A post-processed subhalo file of the format
+                            given in the documentation.
+    2 : Host M200           The virial mass of the input host halo in
+                            comoving coordinates (Msun h^-1).
+    3 : Observation file    Observed satellites in the format given in the
+                            documenation.
+    4 : Target M200         The target (rescaled) virial mass of the host
+                            halo in comoving coordinates (Msun h^-1).
+    5 : Output file         The name of the output file to write luminosity
+                            functions to.
+    *6: N_sightings         The number of mock surveys per observer
+                            position. DEFAULT: 1000.
+    *7: Max radius          The fiducial radius inside which estimates are
+                            made (in kpc). DEFAULT: 400.
+    *8: Min vpeak           Imposes a cut greater than this value in subhalo
+                            peak maximum circular velocity (in km/s).
+                            DEFAULT: 10.
+
+    where the * arguments are optional.
+    NOTE: If optional arguments are given, they must be specified in the
+    above order.
+    ************************************************************************
+    '''
     if len(sys.argv) not in [6, 7, 8, 9]:
         print(help)
         sys.exit(1)
@@ -86,8 +85,8 @@ def main():
     if len(sys.argv) >= 9:
         minVpeak = float(sys.argv[8])
     """Computes the value of '200 rho_critical' needed to compute R200
-   given a halo mass M200. The numerical values correspond to the M200
-   and R200 values of Aq.A1."""
+    given a halo mass M200. The numerical values correspond to the M200
+    and R200 values of Aq.A1."""
     delta200 = compute200RhoCritical(1.3432e12, 0.2458)
 
     # Obtain the fractional sky area/opening angle of each survey
@@ -113,7 +112,7 @@ def main():
         pos = pos[s] - pos[0]
         vPeak = vPeak[s]
         """ Compute a radial rescale factor. This is equivalent to changing
-      the host mass to a new value. """
+        the host mass to a new value. """
         # Input R200
         R200_original = virialRadius(hostMass, rhoCrit200=delta200)
         # R200 for desired output halo mass
@@ -139,8 +138,8 @@ def main():
               "distance of {:0.0f} kpc from the central.".format(
                   noSubs, minVpeak, maxRadius + Sun_dis))
         """ Read the satellite data
-      Reads magnitudes, distances, all provided satellite/survey data, and 
-      the probability of association with the LMC. """
+        Reads magnitudes, distances, all provided satellite/survey data,
+        and the probability of association with the LMC. """
         data = np.genfromtxt(inputObservFile, names=True)
 
         # SDSS satellites
@@ -189,7 +188,7 @@ def main():
         MV_tot = MV_tot[order]
         prob_tot = prob_tot[order]
         """ Generate a set of lines-of-sight (LOS) for the central direction
-      of the survey, uniformly distributed over the surface of a sphere."""
+        of the survey, uniformly distributed over the surface of a sphere."""
         sdss_surveyDirs = uniformPointsOnSphereSurface(noSightings)
         des_surveyDirs = second_pointings(sdss_surveyDirs)
 
@@ -234,7 +233,7 @@ def main():
             # Obtain observer position
             pos_Sun = np.zeros(3, np.float32)
             """ For k=0, sets observer to x=+Sun_dis, k=1 -> x=-Sun_dis,
-         k->2 y=+Sun_dis, and so on. """
+            k->2 y=+Sun_dis, and so on. """
             pos_Sun[int(k / 2)] = Sun_dis * (1 - 2 * (k % 2))
             print("Observer loop k = {} with Sun position "
                   "at {} ".format(k + 1, pos_Sun))
@@ -271,7 +270,7 @@ def main():
                 # Select the subhaloes used for the extrapolation
                 select = np.random.rand(des_MV.shape[0]) >= des_prob
                 """ If any satellites are associated to LMC, update the
-            classical satellite count """
+                classical satellite count """
                 class_sats = update_classical_satellites(
                     des_MV[select], des_MV[~select], des_class)
                 des_bin[k * noSightings + i] = indiv_satellite_estimate(
@@ -282,7 +281,7 @@ def main():
                 # Select the subhaloes used for the extrapolation
                 select = np.random.rand(tot_MV.shape[0]) >= tot_prob
                 """ If any satellites are associated to LMC, update the
-            classical satellite count """
+                classical satellite count """
                 class_sats = update_classical_satellites(
                     tot_MV[select], tot_MV[~select], tot_class)
                 tot_bin[k * noSightings + i] = combined_satellite_estimate(
@@ -317,34 +316,33 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
                                 sdss_cos_surveyAngle, sdss_Rmax, des_direction,
                                 des_cos_surveyAngle, des_Rmax, MV,
                                 classical_sat_count, MV_bins):
-    """ Creates a luminosity function estimate for a single mock survey.
-   
-   Args:
-      sub_pos             : nx3 array of subhalo positions in 'kpc'.
-      sub_dis             : nx1 array of subhalo distances from halo
-                            centre in 'kpc'.
-      sub_index           : nx1 array of indexes which order the subhalo
-                            list.
-      sdss_direction      : 1x3 vector specifying the direction of the
-                            SDSS mock survey cone.
-      sdss_cos_surveyAngle: Float. Cosine of the SDSS survey opening
-                            angle.
-      sdss_Rmax           : 1xm array of floats corresponding the SDSS
-                            Reff value calculated for the associated MV.
-      des_direction       : 1x3 vector specifying the direction of the
-                            DES mock survey cone.
-      des_cos_surveyAngle : Float. Cosine of the DES survey opening
-                            angle.
-      des_Rmax            : 1xm array of floats corresponding the DES
-                            Reff value calculated for the associated MV.
-      MV                  : 1xm array of magnitudes to be used in the
-                            estimate.
-      classical_sat_count : Output from 'update_classical_satellites'.
-      MV_bins             : Magnitude bin values for estimate.
-   
-   Returns:
-      Array corresponding to the satellite luminosity function.
-   """
+    """Creates a luminosity function estimate for a combined observation
+        of two mock surveys.
+
+    Args:
+        sub_pos (Nx3 arr): Cartesian subhalo positions [kpc].
+        sub_dis (Nx1 arr): Subhalo distances from halo centre [kpc].
+        sub_index (Nx1 arr): Indexes that order the subhalo list.
+        sdss_direction (1x3 arr): Vector specifying the direction of the
+            SDSS mock survey cone.
+        sdss_cos_surveyAngle (fl): Cosine of the SDSS survey opening
+            angle.
+        sdss_Rmax (1xM arr): The SDSS Rmax value calculated for the
+            associated M_V.
+        des_direction (1x3 arr): Vector specifying the direction of the
+            DES mock survey cone.
+        des_cos_surveyAngle (fl): Cosine of the DES survey opening
+            angle.
+        des_Rmax (1xM arr): The DES Rmax value calculated for the
+            associated M_V.
+        MV (1xM arr): Absolute V-band magnitudes to be used in the
+            estimate.
+        classical_sat_count: Output from 'update classical satellites'.
+        MV_bins (arr): Magnitude bins for estimate.
+
+    Returns:
+        arr: Satellite galaxy luminosity function.
+    """
     # Find all subhaloes inside the mock surveys
     sdss_cos_theta = (sub_pos * sdss_direction).sum(axis=1) / sub_dis
     des_cos_theta = (sub_pos * des_direction).sum(axis=1) / sub_dis
@@ -365,7 +363,7 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
     # observed satellite magnitude.
     N_tot = np.zeros(MV.shape[0], np.float32)
     """ Loop over each observed satellite. The first and last entries of
-   the array are not actual observations so skip them. """
+    the array are not actual observations so skip them. """
     for j in range(1, MV.shape[0]):
         # Select subhaloes inside SDSS and DES, respectively.
         s_sdss = +_is_sdss * (_dis <= sdss_Rmax[j])
@@ -389,8 +387,8 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
             _is_sdss = _is_sdss[s2]
         else:
             """The last value of j, corresponding to the left-most point on
-         the graph. No observation so we make an estimate of how many
-         satellites could be there. """
+            the graph. No observation so we make an estimate of how many
+            satellites could be there. """
             index_max = _index[select][0]
             N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1, 1)
             # This is the last iteration, so no need to get rid of any
@@ -405,42 +403,40 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
 
 def compute200RhoCritical(M200, R200):
     """ Returns the 200 * rho_critical value given M200 and R200.
-         Courtesy of Marius Cautun.
-   
-   Args:
-      M200 : Float. Mass of halo in 'Msun/h'.
-      R200 : Float. R_200 of halo in 'Mpc/h'.
-   
-   Returns:
-      Float. 200 * rho_critical.
-   """
+            Courtesy of Marius Cautun.
+
+    Args:
+        M200 (fl) : Mass of halo [Msun/h].
+        R200 (fl) : R_200 of halo [Mpc/h].
+
+    Returns:
+        fl: 200 * rho_critical.
+    """
     return 3. / (4. * np.pi) * M200 / R200**3
 
 
 def indiv_satellite_estimate(sub_pos, sub_dis, sub_index, direction,
                              cos_surveyAngle, Rmax, MV, classical_sat_count,
                              MV_bins):
-    """ Creates a luminosity function estimate for a single mock survey.
-   
-   Args:
-      sub_pos             : nx3 array of subhalo positions in 'kpc'.
-      sub_dis             : nx1 array of subhalo distances from halo
-                            centre in 'kpc'.
-      sub_index           : nx1 array of indexes which order the subhalo
-                            list.
-      direction           : 1x3 vector specifying the direction of the
-                            mock survey cone.
-      cos_surveyAngle     : Float. Cosine of the survey opening angle.
-      Rmax                : 1xm array of floats corresponding the Reff
-                            value calculated for the associated MV.
-      MV                  : 1xm array of magnitudes to be used in the
-                            estimate.
-      classical_sat_count : Output from 'update_classical_satellites'.
-      MV_bins             : Magnitude bin values for estimate.
-   
-   Returns:
-      Array corresponding to the satellite luminosity function.
-   """
+    """Creates a luminosity function estimate for a single mock survey.
+
+    Args:
+        sub_pos (Nx3 arr): Cartesian subhalo positions [kpc].
+        sub_dis (Nx1 arr): Subhalo distances from halo centre [kpc].
+        sub_index (Nx1 arr): Indexes that order the subhalo list.
+        direction (1x3 arr): Vector specifying the direction of the mock
+            survey cone.
+        cos_surveyAngle (fl): Cosine of the survey opening angle.
+        Rmax (1xM arr): The Rmax value calculated for the associated
+            M_V.
+        MV (1xM arr): Absolute V-band magnitudes to be used in the
+            estimate.
+        classical_sat_count: Output from 'update classical satellites'.
+        MV_bins (arr): Magnitude bins for estimate.
+
+    Returns:
+        arr: Satellite galaxy luminosity function.
+    """
     # Find all subhaloes inside the mock survey
     cos_theta = (sub_pos * direction).sum(axis=1) / sub_dis
     select = cos_theta >= cos_surveyAngle
@@ -454,7 +450,7 @@ def indiv_satellite_estimate(sub_pos, sub_dis, sub_index, direction,
     # observed satellite magnitude.
     N_tot = np.zeros(MV.shape[0], np.float32)
     """ Loop over each observed satellite. The first and last entries of
-   the array are not actual observations so skip them. """
+    the array are not actual observations so skip them. """
     for j in range(1, MV.shape[0]):
         # Select subhaloes inside survey volume.
         select = _dis <= Rmax[j]
@@ -475,8 +471,8 @@ def indiv_satellite_estimate(sub_pos, sub_dis, sub_index, direction,
             _index = _index[s2]
         else:
             """The last value of j, corresponding to the left-most point on
-         the graph. No observation so we make an estimate of how many
-         satellites could be there. """
+            the graph. No observation so we make an estimate of how many
+            satellites could be there. """
             index_max = _index[select][0]
             N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1, 1)
             # This is the last iteration, so no need to get rid of any
@@ -490,19 +486,19 @@ def indiv_satellite_estimate(sub_pos, sub_dis, sub_index, direction,
 
 
 def output_data_format(MV_bins, N_bins, class_class):
-    """ Prepares the data for writing. Constructs a N_bins+1 array of
-         luminosity functions. The first column corresponds to the Mv
-         values.
-   
-   Args:
-      MV_bins     : Magnitudes of bins used in the estimation.
-      N_bins      : Partially-complete array of estimated+classical LFs.
-      class_class : Magnitudes of the classical satellites to prepend.
-   
-   Returns:
-      N_bins+1 array of luminosity functions. The first column
-      corresponds to Magnitude values.
-   """
+    """Prepares the data for writing.
+
+    Args:
+        MV_bins (arr): Magnitudes bins used in the estimation.
+        N_bins (arr): Partially-complete array of estimated+classical
+            luminosity functions.
+        class_class (arr): Magnitudes of the classical satellites to
+            prepend.
+
+    Returns:
+        arr (N_bins + 1): Luminosity functions. The first column
+            corresponds to the absolute V-band magnitude values.
+    """
     noRows = MV_bins.shape[0] + class_class.shape[0]
     noColumns = 1 + N_bins.shape[0]
     out = np.empty((noRows, noColumns), np.float32)
@@ -523,22 +519,25 @@ def output_data_format(MV_bins, N_bins, class_class):
 
 
 def randomPointsOnSphereSurface(N, cosTheta_min=None, cosTheta_max=None):
-    """ Generates a numpy array of random points on a unit sphere's
-         surface.
-         Courtesy of Marius Cautun.
-   
-   Args:
-      N            : Int. Number of points to generate.
-      cosTheta_min : Float. Lower bound on cosTheta values.
-      cosTheta_max : Float. Upper bound on cosTheta values.
-   
-   Returns:
-      Nx3 array of vectors in cartesian basis.
-   """
+    """Generates an array of random points on the surface of a unit
+    sphere.
+
+    Args:
+        N (int): Number of points to generate.
+        cosTheta_min (fl, optional): Lower bound on cosTheta values.
+            Defaults to None.
+        cosTheta_max (fl, optional): Upper bound on cosTheta values.
+            Defaults to None.
+
+    Returns:
+        Nx3 arr: Vectors to points in cartesian basis.
+    """
     sph = np.empty((N, 3), np.float)
 
-    if cosTheta_min is None or cosTheta_min < -1.: cosTheta_min = -1.
-    if cosTheta_max is None or cosTheta_max > +1.: cosTheta_max = +1.
+    if cosTheta_min is None or cosTheta_min < -1.:
+        cosTheta_min = -1.
+    if cosTheta_max is None or cosTheta_max > +1.:
+        cosTheta_max = +1.
     if cosTheta_min > cosTheta_max:
         cosTheta_min, cosTheta_max = cosTheta_max, cosTheta_min
 
@@ -553,19 +552,20 @@ def randomPointsOnSphereSurface(N, cosTheta_min=None, cosTheta_max=None):
 
 
 def second_pointings(pointings, alpha_off=2. * np.pi / 3.):
-    """Given an initial set of pointings, generates a second set with
-       respect to the first.
+    """Generates a set of pointing vectors with respect to an initial
+        set.
 
-   Args:
-      pointings : Array of pointing vectors (in Cartesian basis) to
-                     generate the second set with respect to.
-      alpha_off : Float. Offset angle (in radians) with respect to the
-                     initial vectors provided to the function.
-                     DEFAULT: 2pi/3 (120 degrees).
+    Args:
+        pointings (Nx3 arr): Cartesian vectors with respect to which to
+            generate the second set of vectors.
+        alpha_off (fl, optional): Offset angle (in radians) with respect
+            to the intial vectors provided to the function.
+            Defaults to 2.*np.pi/3 (120 degrees).
 
-   Returns:
-      Array of vectors in Cartesian basis.
-   """
+    Returns:
+        Nx3 arr: Cartesian vectors.
+    """
+
     # Define new (u, v, w) orthogonal basis, with w aligned along the
     # initial pointing directions (pointings).
     # Define random rotations around w axis
@@ -645,31 +645,33 @@ def second_pointings(pointings, alpha_off=2. * np.pi / 3.):
 
 
 def survey_Reff(Mv, a, b, surveyArea):
-    """ Computes the effective radius of detection for a given survey and
-        magnitudes of satellites.
-   
-   Args:
-      Mv         : Array. Array of magnitude values.
-      a          : a* parameter from equation 3 in Newton et al. (2017)
-      b          : b* parameter from equation 3 in Newton et al. (2017)
-      surveyArea : Fractional sky area coverage for given survey.
-   
-   Returns:
-      Array. Reff values in untis of 'kpc'.
-   """
+    """Computes the effective radius of detection of satellites of a
+        given magnitude in a given survey.
+
+    Args:
+        Mv (arr): Absolute V-band mangitude values.
+        a (fl): a* parameter from eq. 3 in Newton et al. (2018)
+        b (fl): b* parameter from eq. 3 in Newton et al. (2018)
+        surveyArea (fl): Fractional sky area covered by given survey.
+
+    Returns:
+        arr: Reff [kpc].
+    """
     return 10**((-a * Mv - b)) * 1.e3
 
 
 def survey_cone(survey_area):
-    """ Computes the fractional sky area coverage and cosine of the
-         corresponding opening angle of a mock conical survey region.
-   
-   Args:
-      survey_area = Float. Survey sky area coverage in deg^2.
-   
-   Returns:
-      Tuple in the form (Fractional survey area,Cosine{survey angle}).
-   """
+    """ Computes the fractional sky area coverage and cosine of a mock
+        conical survey region.
+
+    Args:
+        survey_area (fl). Survey sky area coverage [deg^2].
+
+    Returns:
+        tuple:
+            [0]: Fractional survey area
+            [1]: Cosine(survey angle).
+    """
     fullSkyArea = 4 * np.pi * (180. / np.pi)**2  # in deg^2
     fracArea = survey_area / fullSkyArea
     cos_surveyAngle = 1. - 2. * fracArea
@@ -678,17 +680,17 @@ def survey_cone(survey_area):
 
 
 def uniformPointsOnSphereSurface(N):
-    """ Generates a numpy array of uniformly distributed points on a
-         unit sphere's surface.
-         http://bit.ly/2cQClOc
-         Courtesy of Marius Cautun.
-   
-   Args:
-      N : Int. Number of points to generate.
-   
-   Returns:
-      Nx3 array of vectors in cartesian basis.
-   """
+    """Generates an array of points uniformly distributed on the surface
+        of a unit sphere.
+        http://bit.ly/2cQClOc
+        Courtesy of Marius Cautun.
+
+    Args:
+        N (int): Number of points to generate.
+
+    Returns:
+        Nx3 arr: Cartesian vectors for the generated points.
+    """
     dz = 2. / N
     dPhi = np.pi * (3. - 5.**0.5)
     points = np.empty((N, 3), np.float64)
@@ -706,18 +708,20 @@ def uniformPointsOnSphereSurface(N):
 
 
 def update_classical_satellites(MV_keep, MV_LMC, classical_sats):
-    """ Updates the count of classical satellites given a selection of
-         satellites associated to the LMC.
-   
-   Args:
-      MV_keep        : Magnitudes of satellites to use in the procedure.
-      MV_LMC         : Magnitudes of satellites removed from procedure.
-      classical_sats : Classical satellites to add in.
-   
-   Returns:
-      1xn array of ints. These correspond to the cumulative number of
-      satellites which have been treated 'classically' in this analysis.
-   """
+    """Updates the count of classical satellites given the selection of
+        satellites that are associated to the LMC.
+
+    Args:
+        MV_keep (arr): Absolute V-band mangnitudes of the satellites to
+            use in the procedure.
+        MV_LMC (arr): Absolute V-band magnitudes of the satellites to be
+            removed from the procedure.
+        classical_sats (arr): Classical satellites to add in.
+
+    Returns:
+        1xN arr: Cumulative number of satellites that have been treated
+        'classically' in this analysis.
+    """
     out = np.zeros(MV_keep.shape[0], np.int32)
     for i in range(MV_keep.shape[0]):
         out[i] = ((MV_keep[i] >= MV_LMC).sum() +
@@ -726,35 +730,34 @@ def update_classical_satellites(MV_keep, MV_LMC, classical_sats):
 
 
 def virialRadius(M200, rhoCrit200):
-    """ Calculates the virial radius of a halo given M200 and rho crit.
-         Courtesy of Marius Cautun.
+    """Calculates R_200 of a halo given M_200 and rho_crit.
 
-   Args:
-      M200       : Float. Mass of halo in  'Msun/h'.
-      rhoCrit200 : Float. Critical density of the Universe in
-                   'Msun/h  (Mpc/h)^-3'.
+    Args:
+        M200 (fl): Mass of halo [Msun / h].
+        rhoCrit200 (fl): Critical density of the Universe
+            [Msun/h (Mpc/h)^-3].
 
-   Returns:
-      Float. Virial radius in units of 'Mpc/h'.
-   """
+    Returns:
+        fl: R_200 [Mpc / h].
+    """
     return (M200 / rhoCrit200 / (4. * np.pi / 3.))**(1. / 3.)
 
 
 def writeOutput(outputFile, programOptionsDesc, data_out, groups=False):
-    """ Writes dataset 'Lum_Func' to hdf5 file. This has the format
-         returned by 'output_data_format'.
-   
-   Args:
-      outputFile         : String. Full path to output file.
-      programOptionsDesc : String. Command line command used to produce
-                           this set of luminosity functions.
-      data_out           : Tuple. The data to write to file.
-      groups             : Boolean False or List. If list, list of
-                           groups to write into output file.
-   
-   Returns:
-      None.
-   """
+    """Writes 'Lum_Func' data set to hdf5 file. This has the format
+        returned by 'output_data_format'.
+
+    Args:
+        outputFile (str): Full path to output file.
+        programOptionsDesc (str): Command line command used to produce
+            this set of luminosity functions.
+        data_out (tuple): The data to write to the file.
+        groups (bool, optional): If list, list of groups to write into
+            output file. Defaults to False.
+
+    Returns:
+        None
+    """
     print("Writing the output data file '{}' ...".format(outputFile))
     with h5py.File(outputFile, 'w') as hf:
         if groups:
