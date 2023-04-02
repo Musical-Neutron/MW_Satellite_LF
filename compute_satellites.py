@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from typing import Union
 
 import h5py
 import numpy as np
@@ -401,6 +402,49 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
     return 10**np.interp(MV_bins, MV, np.log10(N_tot))
 
 
+def spherical_to_cartesian(coordinates: Union[list, np.ndarray]) -> np.ndarray:
+    """Converts from Spherical to Cartesian basis.
+
+        Args:
+            coordinates (nd.array (N,3)): (r, theta, phi) values to
+                convert.
+
+        Returns:
+            np.ndarray (N,3): coordinates in Cartesian basis (x, y, z).
+        """
+    # Validation checks
+    coordinates_permitted_types = (list, np.ndarray)
+    if not isinstance(coordinates, coordinates_permitted_types):
+        raise TypeError("coordinates must be one of: {}".format(
+            coordinates_permitted_types))
+    else:
+        coordinates = np.asarray(coordinates)
+
+    # Check if single vector is supplied or set of vectors
+    array_of_arrays = isinstance(coordinates[0], np.ndarray)
+    if not array_of_arrays:
+        coordinates = coordinates.reshape((1, 3))
+
+    # Function is designed to work in 3D
+    if np.size(coordinates, 1) != 3:
+        raise ValueError("coordinates should be (N,3) array")
+
+    # Convert to Cartesian coordinates
+    x = coordinates[:, 0] * np.sin(coordinates[:, 1]) * np.cos(coordinates[:,
+                                                                           2])
+    y = coordinates[:, 0] * np.sin(coordinates[:, 1]) * np.sin(coordinates[:,
+                                                                           2])
+    z = coordinates[:, 0] * np.cos(coordinates[:, 1])
+
+    # Output based on input array
+    if array_of_arrays:
+        return_array = np.column_stack((x, y, z))
+    else:
+        return_array = np.concatenate((x, y, z))
+
+    return return_array
+
+
 def compute200RhoCritical(M200, R200):
     """ Returns the 200 * rho_critical value given M200 and R200.
             Courtesy of Marius Cautun.
@@ -530,7 +574,7 @@ def randomPointsOnSphereSurface(N, cosTheta_min=None, cosTheta_max=None):
             Defaults to None.
 
     Returns:
-        Nx3 arr: Vectors to points in cartesian basis.
+        Nx3 arr: Cartesian vector for each point.
     """
     sph = np.empty((N, 3), np.float)
 
