@@ -2,7 +2,8 @@
 import numpy as np
 
 
-def virial_radius(m200, rho_crit200):
+
+def compute_r200(m200, rho_crit200):
     """Calculates R_200 of a halo given M_200 and rho_crit.
 
     Args:
@@ -16,7 +17,7 @@ def virial_radius(m200, rho_crit200):
     return (m200 / rho_crit200 / (4.0 * np.pi / 3.0)) ** (1.0 / 3.0)
 
 
-def compute_200rho_crit(m200, r200):
+def critical_density_200(m200, r200):
     """Returns the 200 * rho_critical value given M200 and R200.
             Courtesy of Marius Cautun.
 
