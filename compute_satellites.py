@@ -10,7 +10,7 @@ from mwsatslf.luminosity import (
     update_classical_satellites,
 )
 from mwsatslf.io import output_data_format, write_output
-from mwsatslf.cosmology import compute_200rho_crit, virial_radius
+from mwsatslf.cosmology import critical_density_200, compute_r200
 from mwsatslf.survey import second_pointings, survey_Reff, survey_cone
 
 survey_data = np.genfromtxt("Input_Data/Surveys.csv", names=True)
@@ -90,7 +90,7 @@ def main():
     """Computes the value of '200 rho_critical' needed to compute R200
     given a halo mass M200. The numerical values correspond to the M200
     and R200 values of Aq.A1."""
-    delta200 = compute_200rho_crit(1.3432e12, 0.2458)
+    rho_crit_200 = critical_density_200(1.3432e12, 0.2458)
 
     # Obtain the fractional sky area/opening angle of each survey
     sdss_survey_area, sdss_cos_survey_angle = survey_cone(survey_area_dict["sdss"])
@@ -115,9 +115,9 @@ def main():
         """ Compute a radial rescale factor. This is equivalent to changing
         the host mass to a new value. """
         # Input R200
-        r200_original = virial_radius(host_mass, rho_crit200=delta200)
+        r200_original = compute_r200(host_mass, rho_crit200=rho_crit_200)
         # R200 for desired output halo mass
-        r200_output = virial_radius(output_host_mass, rho_crit200=delta200)
+        r200_output = compute_r200(output_host_mass, rho_crit200=rho_crit_200)
         radius_scaling_factor = r200_output / r200_original
         print(
             "Rescaling subhalo positions by a factor of {:0.2f} "
