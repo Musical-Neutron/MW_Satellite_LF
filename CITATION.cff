@@ -1,0 +1,62 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: gcgmics
+message: >-
+  If you use this code or data, please cite both the article
+  from preferred-citation and the code itself.
+type: software
+authors:
+  - given-names: Oliver
+    family-names: Newton
+    email: o.newton@surrey.ac.uk
+    orcid: 'https://orcid.org/0000-0002-2769-9507'
+    affiliation: >-
+      Astrophysics Group, School of Mathematics & Physics, University of Surrey, UK
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.1205621
+    description: Data and code repository
+  - type: doi
+    value: 10.1093/mnras/sty1085
+    description: Journal article
+  - type: url
+    value: 'https://arxiv.org/abs/1708.04247'
+    description: arXiv
+repository-code: 'https://github.com/Musical-Neutron/MW_Satellite_LF'
+abstract: >-
+  A repository of reduced data and scripts to reproduce the
+  results in the paper referred to above.
+keywords:
+  - astronomy
+  - Milky Way
+  - satellite galaxies
+license: GPL-3.0
+version: 1.0.0
+date-released: '2018-05-01'
+preferred-citation:
+  authors:
+    - family-names: Newton
+      given-names: Oliver
+      orcid: 'https://orcid.org/0000-0002-2769-9507'
+    - family-names: Cautun
+      given-names: Marius
+      orcid: 'https://orcid.org/0000-0003-1625-6126'
+    - family-names: Jenkins
+      given-names: Adrian
+      orcid: 'https://orcid.org/0000-0003-4389-2232'
+    - family-names: Frenk
+      given-names: Carlos S.
+      orcid: 'https://orcid.org/0000-0002-2338-716X'
+    - family-names: Helly
+      given-names: John C.
+      orcid: 'https://orcid.org/0000-0002-8804-0212'
+  identifiers:
+    - type: doi
+      value: 10.1093/mnras/sty1085
+      description: Journal article concerning this repository
+  title: 'The total satellite population of the Milky Way'
+  journal: 'Monthly Notices of the Royal Astronomical Society'
+  year: 2028
+  type: article

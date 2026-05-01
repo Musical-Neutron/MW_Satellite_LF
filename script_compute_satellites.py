@@ -2,9 +2,18 @@
 import os
 from subprocess import Popen
 
-from universal_settings import (MW_mass, all_sat_data, aq_mass, input_data,
-                                n_sightings, output_data, r_out, r_out_text,
-                                vmax_cut)
+from universal_settings import (
+    mw_mass,
+    all_sat_data,
+    aq_mass,
+    input_data,
+    n_sightings,
+    output_data,
+    r_out,
+    r_out_text,
+    vmax_cut,
+)
+
 """
 Use it to execute a set of commands given as a list
 Can be used with a batch system.
@@ -23,36 +32,46 @@ e.g. ./script_compute_satellites.py 1 2
 
 def main():
     input_tree_files = [
-        'Aq-A2_processed_trees.hdf5', 'Aq-B2_processed_trees.hdf5',
-        'Aq-C2_processed_trees.hdf5', 'Aq-D2_processed_trees.hdf5',
-        'Aq-E2_processed_trees.hdf5'
+        "Aq-A2_processed_trees.hdf5",
+        "Aq-B2_processed_trees.hdf5",
+        "Aq-C2_processed_trees.hdf5",
+        "Aq-D2_processed_trees.hdf5",
+        "Aq-E2_processed_trees.hdf5",
     ]
     input_trees = [
-        os.path.join(input_data, 'Aquarius', tree_file)
+        os.path.join(input_data, "Aquarius", tree_file)
         for tree_file in input_tree_files
     ]
     output_file_templates = [
-        'Aq.A2_M_MW_{0}_r_{1}_', 'Aq.B2_M_MW_{0}_r_{1}_',
-        'Aq.C2_M_MW_{0}_r_{1}_', 'Aq.D2_M_MW_{0}_r_{1}_',
-        'Aq.E2_M_MW_{0}_r_{1}_'
+        "Aq.A2_M_MW_{0}_r_{1}_",
+        "Aq.B2_M_MW_{0}_r_{1}_",
+        "Aq.C2_M_MW_{0}_r_{1}_",
+        "Aq.D2_M_MW_{0}_r_{1}_",
+        "Aq.E2_M_MW_{0}_r_{1}_",
     ]
     output_files = [
         os.path.join(output_data, file_template)
         for file_template in output_file_templates
     ]
-    mw_size_list = list(MW_mass.keys())
+    mw_size_list = list(mw_mass.keys())
 
     commands = []
     for tree, output_file in zip(input_trees, output_files):
-        aq_identifier = tree.split('/')[-1].split('_')[0][:4]
+        aq_identifier = tree.split("/")[-1].split("_")[0][:4]
         for mw_size in mw_size_list:
             command = (
-                './compute_satellites.py ' + '{} '.format(tree) +
-                '{} '.format(aq_mass[aq_identifier]) + all_sat_data +
-                ' {}'.format(MW_mass[mw_size][0]) + ' {}'.format(
-                    output_file.format(MW_mass[mw_size][1], r_out_text) +
-                    ' {}'.format(int(n_sightings)) + ' {}'.format(r_out) +
-                    ' {}'.format(vmax_cut)))
+                "./compute_satellites.py "
+                + "{} ".format(tree)
+                + "{} ".format(aq_mass[aq_identifier])
+                + all_sat_data
+                + " {}".format(mw_mass[mw_size][0])
+                + " {}".format(
+                    output_file.format(mw_mass[mw_size][1], r_out_text)
+                    + " {}".format(int(n_sightings))
+                    + " {}".format(r_out)
+                    + " {}".format(vmax_cut)
+                )
+            )
             commands.append(command)
 
     #
