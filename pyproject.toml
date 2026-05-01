@@ -1,0 +1,54 @@
+[build-system]
+    build-backend="setuptools.build_meta"
+    requires     =["setuptools>=61.0.0", "wheel"]
+
+[project]
+    authors=[{name="Oliver Newton", email="o.newton@surrey.ac.uk"}]
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Science/Research",
+        "Natural Language :: English",
+        "Programming Language :: Python :: 3",
+        "Topic :: Scientific/Engineering :: Astronomy",
+        "Topic :: Scientific/Engineering",
+    ]
+    dependencies=[
+        "PyYAML",
+        "h5py",
+        "numpy",
+    ]
+    description="Reduced data and scripts to reproduce the results of the Milky Way satellite population paper."
+    dynamic=["version"]
+    keywords=["astronomy", "Milky Way", "satellite galaxies"]
+    license={file="LICENSE"}
+    maintainers=[{name="Oliver Newton", email="o.newton@surrey.ac.uk"}]
+    name="mwsatslf"
+    readme="README.md"
+    requires-python=">=3.8"
+
+[project.urls]
+    "Bug Tracker"="https://github.com/Musical-Neutron/MW_Satellite_LF/issues"
+    Changelog    ="https://github.com/Musical-Neutron/MW_Satellite_LF/blob/main/CHANGELOG.md"
+    Repository   ="https://github.com/Musical-Neutron/MW_Satellite_LF"
+
+[project.optional-dependencies]
+    dev =["black", "flake8", "ipython"]
+    test=["pytest-cov", "pytest>=6.0"]
+
+[tool.setuptools.dynamic]
+    version={file=["VERSION"]}
+
+[tool.setuptools.packages.find]
+    exclude=["tests"]
+    where  =["."]
+
+[tool.setuptools]
+    include-package-data=true
+
+[tool.setuptools.package-data]
+    mwsatslf=["*.json", "*.md", "*.txt", "settings.yaml"]
+
+[tool.pytest.ini_options]
+    addopts     ="-v -ra -q --cov=mwsatslf --cov-report=xml:cov.xml"
+    python_files="test_*.py"
+    testpaths   =["tests"]
