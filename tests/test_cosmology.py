@@ -9,10 +9,6 @@ REF_M200 = 1.3432e12  # Msun/h
 REF_R200 = 0.2458  # Mpc/h
 EXPECTED_RHO_CRIT200 = 3.0 / (4.0 * np.pi) * REF_M200 / REF_R200**3
 
-import numpy as np
-import pytest
-from mwsatslf.cosmology import compute_r200, critical_density_200
-
 
 class TestComputeR200:
     """Tests for compute_r200."""
