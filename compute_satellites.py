@@ -402,15 +402,15 @@ def combined_satellite_estimate(sub_pos, sub_dis, sub_index, sdss_direction,
     return 10**np.interp(MV_bins, MV, np.log10(N_tot))
 
 
-def spherical_to_cartesian(coordinates: Union[list, np.ndarray]) -> np.ndarray:
-    """Converts from Spherical to Cartesian basis.
+def cartesian_to_spherical(coordinates: Union[list, np.ndarray]) -> np.ndarray:
+    """Converts from Cartesian to Spherical basis.
 
         Args:
-            coordinates (nd.array (N,3)): (r, theta, phi) values to
-                convert.
+            coordinates (nd.array (N,3)): (x, y, z) values to convert.
 
         Returns:
-            np.ndarray (N,3): coordinates in Cartesian basis (x, y, z).
+            np.ndarray (N,3): coordinates in Spherical basis
+                (r, theta, phi).
         """
     # Validation checks
     coordinates_permitted_types = (list, np.ndarray)
@@ -429,18 +429,16 @@ def spherical_to_cartesian(coordinates: Union[list, np.ndarray]) -> np.ndarray:
     if np.size(coordinates, 1) != 3:
         raise ValueError("coordinates should be (N,3) array")
 
-    # Convert to Cartesian coordinates
-    x = coordinates[:, 0] * np.sin(coordinates[:, 1]) * np.cos(coordinates[:,
-                                                                           2])
-    y = coordinates[:, 0] * np.sin(coordinates[:, 1]) * np.sin(coordinates[:,
-                                                                           2])
-    z = coordinates[:, 0] * np.cos(coordinates[:, 1])
+    # Convert to spherical coordinates
+    r = np.sqrt((coordinates * coordinates).sum(axis=1))
+    theta = np.arccos(coordinates[:, 2] / r)
+    phi = np.arctan2(coordinates[:, 1], coordinates[:, 0])
 
     # Output based on input array
     if array_of_arrays:
-        return_array = np.column_stack((x, y, z))
+        return_array = np.column_stack((r, theta, phi))
     else:
-        return_array = np.concatenate((x, y, z))
+        return_array = np.concatenate((r, theta, phi))
 
     return return_array
 
@@ -562,37 +560,37 @@ def output_data_format(MV_bins, N_bins, class_class):
     return out
 
 
-def randomPointsOnSphereSurface(N, cosTheta_min=None, cosTheta_max=None):
-    """Generates an array of random points on the surface of a unit
-    sphere.
+# def randomPointsOnSphereSurface(N, cosTheta_min=None, cosTheta_max=None):
+#     """Generates an array of random points on the surface of a unit
+#     sphere.
 
-    Args:
-        N (int): Number of points to generate.
-        cosTheta_min (fl, optional): Lower bound on cosTheta values.
-            Defaults to None.
-        cosTheta_max (fl, optional): Upper bound on cosTheta values.
-            Defaults to None.
+#     Args:
+#         N (int): Number of points to generate.
+#         cosTheta_min (fl, optional): Lower bound on cosTheta values.
+#             Defaults to None.
+#         cosTheta_max (fl, optional): Upper bound on cosTheta values.
+#             Defaults to None.
 
-    Returns:
-        Nx3 arr: Cartesian vector for each point.
-    """
-    sph = np.empty((N, 3), np.float)
+#     Returns:
+#         Nx3 arr: Cartesian vector for each point.
+#     """
+#     sph = np.empty((N, 3), np.float)
 
-    if cosTheta_min is None or cosTheta_min < -1.:
-        cosTheta_min = -1.
-    if cosTheta_max is None or cosTheta_max > +1.:
-        cosTheta_max = +1.
-    if cosTheta_min > cosTheta_max:
-        cosTheta_min, cosTheta_max = cosTheta_max, cosTheta_min
+#     if cosTheta_min is None or cosTheta_min < -1.:
+#         cosTheta_min = -1.
+#     if cosTheta_max is None or cosTheta_max > +1.:
+#         cosTheta_max = +1.
+#     if cosTheta_min > cosTheta_max:
+#         cosTheta_min, cosTheta_max = cosTheta_max, cosTheta_min
 
-    # z-coordinates
-    sph[:, 2] = np.random.uniform(cosTheta_min, cosTheta_max, N)
-    z2 = np.sqrt(1.0 - sph[:, 2]**2)
-    phi = (2.0 * np.pi) * np.random.random(N)
-    sph[:, 0] = z2 * np.cos(phi)  # x
-    sph[:, 1] = z2 * np.sin(phi)  # y
+#     # z-coordinates
+#     sph[:, 2] = np.random.uniform(cosTheta_min, cosTheta_max, N)
+#     z2 = np.sqrt(1.0 - sph[:, 2]**2)
+#     phi = (2.0 * np.pi) * np.random.random(N)
+#     sph[:, 0] = z2 * np.cos(phi)  # x
+#     sph[:, 1] = z2 * np.sin(phi)  # y
 
-    return sph
+#     return sph
 
 
 def second_pointings(pointings, alpha_off=2. * np.pi / 3.):
@@ -739,10 +737,11 @@ def uniformPointsOnSphereSurface(N):
     dPhi = np.pi * (3. - 5.**0.5)
     points = np.empty((N, 3), np.float64)
 
-    # Obtain z coordinate
+    # Calculate z coordinate
     step = np.arange(N)
     points[:, 2] = 1. - dz * step
-    # Obtain x and y coordinates
+
+    # Calculate x and y coordinates
     r = (1. - points[:, 2] * points[:, 2])**0.5
     phi = dPhi * step
     points[:, 0] = r * np.cos(phi)
