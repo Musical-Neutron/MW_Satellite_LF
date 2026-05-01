@@ -3,49 +3,45 @@ import sys
 
 import h5py
 import numpy as np
-from mwsatslf.tools import (
+from mwsatslf.geometry import uniform_points_on_sphere_surface
+from mwsatslf.luminosity import (
     combined_satellite_estimate,
-    compute200RhoCritical,
     indiv_satellite_estimate,
-    output_data_format,
-    second_pointings,
-    survey_Reff,
-    survey_cone,
-    uniformPointsOnSphereSurface,
     update_classical_satellites,
-    virialRadius,
-    writeOutput,
 )
+from mwsatslf.io import output_data_format, write_output
+from mwsatslf.cosmology import compute_200rho_crit, virial_radius
+from mwsatslf.survey import second_pointings, survey_Reff, survey_cone
 
 survey_data = np.genfromtxt("Input_Data/Surveys.csv", names=True)
 sat_data = np.genfromtxt("Input_Data/All_satellites.csv", names=True)
-dic_surveyArea = {
+survey_area_dict = {
     "sdss": survey_data["SDSSIXW09"][0],
     "des": survey_data["DES"][0],
 }  # Survey sky area
 # Column label in satellite file that gives SDSS and DES satellites
-dic_columnSats = {"sdss": "SDSSIX", "des": "DES"}
+dic_column_sats = {"sdss": "SDSSIX", "des": "DES"}
 
 # a* and b* parameters to compute R_eff for a given magnitude.
-dic_Reff_params = {
+dic_reff_params = {
     "sdss": {"a": survey_data["SDSSIXW09"][1], "b": survey_data["SDSSIXW09"][2]},
     "des": {"a": survey_data["DES"][1], "b": survey_data["DES"][2]},
 }
-noSightings = 1000  # Default value for the number of sightings
-M_max = -8.8  # Brightest magnitude bin used for interpolation grid
-noBins_M = 45
-M_min = M_max * (noBins_M / (0.5 - noBins_M) + 1.0)
-dM = M_max / (0.5 - noBins_M)
-Sun_dis = 8.0  # Distance of the sun from the Galactic Centre
-disFactor = 1.0e3  # Scale factor to obtain positions in 'kpc'
-minVpeak = 10.0  # Default value for the minimum V_peak used
-maxRadius = 400.0  # Default value for the maximum radius used
+n_sightings = 1000  # Default value for the number of sightings
+mv_max = -8.8  # Brightest magnitude bin used for interpolation grid
+n_bins_mv = 45
+mv_min = mv_max * (n_bins_mv / (0.5 - n_bins_mv) + 1.0)
+dmv = mv_max / (0.5 - n_bins_mv)
+sun_distance = 8.0  # Distance of the sun from the Galactic Centre
+distance_scaling_factor = 1.0e3  # Scale factor to obtain positions in 'kpc'
+min_vpeak = 10.0  # Default value for the minimum V_peak used
+max_radius = 400.0  # Default value for the maximum radius used
 group_list = ["Original", "Original+Orphan", "Original+Orphan+Baryons"]
 
 
 def main():
-    programName = sys.argv[0].rsplit("/")[-1]
-    programOptionsDesc = programName + " " + " ".join(sys.argv[1:])
+    program_name = sys.argv[0].rsplit("/")[-1]
+    program_options_desc = program_name + " " + " ".join(sys.argv[1:])
     help = """
     ************************************************************************
     Computes the expected number of faint satellites given an observed
@@ -80,200 +76,204 @@ def main():
         print(help)
         sys.exit(1)
 
-    inputSubhaloFile = sys.argv[1]
-    hostMass = float(sys.argv[2])
-    inputObservFile = sys.argv[3]
-    outputHostMass = float(sys.argv[4])
-    outputFile = sys.argv[5]
+    input_subhalo_file = sys.argv[1]
+    host_mass = float(sys.argv[2])
+    input_observation_file = sys.argv[3]
+    output_host_mass = float(sys.argv[4])
+    output_file = sys.argv[5]
     if len(sys.argv) >= 7:
-        noSightings = int(sys.argv[6])
+        n_sightings = int(sys.argv[6])
     if len(sys.argv) >= 8:
-        maxRadius = float(sys.argv[7])
+        max_radius = float(sys.argv[7])
     if len(sys.argv) >= 9:
-        minVpeak = float(sys.argv[8])
+        min_vpeak = float(sys.argv[8])
     """Computes the value of '200 rho_critical' needed to compute R200
     given a halo mass M200. The numerical values correspond to the M200
     and R200 values of Aq.A1."""
-    delta200 = compute200RhoCritical(1.3432e12, 0.2458)
+    delta200 = compute_200rho_crit(1.3432e12, 0.2458)
 
     # Obtain the fractional sky area/opening angle of each survey
-    sdss_surveyArea, sdss_cos_surveyAngle = survey_cone(dic_surveyArea["sdss"])
-    des_surveyArea, des_cos_surveyAngle = survey_cone(dic_surveyArea["des"])
+    sdss_survey_area, sdss_cos_survey_angle = survey_cone(survey_area_dict["sdss"])
+    des_survey_area, des_cos_survey_angle = survey_cone(survey_area_dict["des"])
 
-    SDSS_data_out = np.empty(len(group_list)).tolist()
-    DES_data_out = np.empty(len(group_list)).tolist()
-    SDSSDES_data_out = np.empty(len(group_list)).tolist()
+    sdss_data_out = np.empty(len(group_list)).tolist()
+    des_data_out = np.empty(len(group_list)).tolist()
+    sdssdes_data_out = np.empty(len(group_list)).tolist()
 
     for grp_i, grp_item in enumerate(group_list):
         # Read in the subhaloes
-        print("Reading subhalo data from file '{}' ...".format(inputSubhaloFile))
-        with h5py.File(inputSubhaloFile, "r") as data:
+        print("Reading subhalo data from file '{}' ...".format(input_subhalo_file))
+        with h5py.File(input_subhalo_file, "r") as data:
             pos = np.asarray(data[grp_item + "/cop"])
-            vPeak = np.asarray(data[grp_item + "/vpeak"])
+            vpeak = np.asarray(data[grp_item + "/vpeak"])
 
         # Select only objects above the Vpeak cut
-        s = vPeak >= minVpeak
+        s = vpeak >= min_vpeak
         s[0] = False  # Remove the host
         pos = pos[s] - pos[0]
-        vPeak = vPeak[s]
+        vpeak = vpeak[s]
         """ Compute a radial rescale factor. This is equivalent to changing
         the host mass to a new value. """
         # Input R200
-        R200_original = virialRadius(hostMass, rhoCrit200=delta200)
+        r200_original = virial_radius(host_mass, rho_crit200=delta200)
         # R200 for desired output halo mass
-        R200_output = virialRadius(outputHostMass, rhoCrit200=delta200)
-        radialFactor = R200_output / R200_original
+        r200_output = virial_radius(output_host_mass, rho_crit200=delta200)
+        radius_scaling_factor = r200_output / r200_original
         print(
             "Rescaling subhalo positions by a factor of {:0.2f} "
             "corresponding to changing from the input mass, M200={:0.2e}, "
             "to the desired output mass, M200 = {:0.2e}.".format(
-                radialFactor, hostMass, outputHostMass
+                radius_scaling_factor, host_mass, output_host_mass
             )
         )
 
         # Select only subhaloes within the desired distance from the host
-        dis = np.sqrt((pos * pos).sum(axis=1)) * disFactor * radialFactor
+        dis = (
+            np.sqrt((pos * pos).sum(axis=1))
+            * distance_scaling_factor
+            * radius_scaling_factor
+        )
         # Select everything with distances <= maximum radius + Solar distance
-        s = dis <= (maxRadius + Sun_dis)
-        pos = pos[s, :] * disFactor * radialFactor
-        vPeak = vPeak[s]
+        s = dis <= (max_radius + sun_distance)
+        pos = pos[s, :] * distance_scaling_factor * radius_scaling_factor
+        vpeak = vpeak[s]
 
         # order the subhaloes according to their vMax values
-        order = vPeak.argsort()[::-1]
+        order = vpeak.argsort()[::-1]
         pos = pos[order, :]
-        noSubs = pos.shape[0]
+        n_subhaloes = pos.shape[0]
         print(
             "There are {} subhaloes with Vmax >= {:0.1f} km/s and within a "
             "distance of {:0.0f} kpc from the central.".format(
-                noSubs, minVpeak, maxRadius + Sun_dis
+                n_subhaloes, min_vpeak, max_radius + sun_distance
             )
         )
         """ Read the satellite data
         Reads magnitudes, distances, all provided satellite/survey data,
         and the probability of association with the LMC. """
-        data = np.genfromtxt(inputObservFile, names=True)
+        data = np.genfromtxt(input_observation_file, names=True)
 
         # SDSS satellites
-        s = (data[dic_columnSats["sdss"]] == 2) * (data["Dkpc"] <= maxRadius)
-        MV_sdss = data["MV"][s]
+        s = (data[dic_column_sats["sdss"]] == 2) * (data["Dkpc"] <= max_radius)
+        mv_sdss = data["MV"][s]
         rad_sdss = data["Dkpc"][s]
         prob_sdss = data["LMC"][s]
         # Obtain classical satellites for SDSS
-        s = (data[dic_columnSats["sdss"]] == 1) * (data["Dkpc"] <= maxRadius)
+        s = (data[dic_column_sats["sdss"]] == 1) * (data["Dkpc"] <= max_radius)
         sdss_class = data["MV"][s]
 
         # DES satellites
-        s = (data[dic_columnSats["des"]] == 2) * (data["Dkpc"] <= maxRadius)
-        MV_des = data["MV"][s]
+        s = (data[dic_column_sats["des"]] == 2) * (data["Dkpc"] <= max_radius)
+        mv_des = data["MV"][s]
         rad_des = data["Dkpc"][s]
         prob_des = data["LMC"][s]
         # Obtain classical satellites for DES
-        s = (data[dic_columnSats["des"]] == 1) * (data["Dkpc"] <= maxRadius)
+        s = (data[dic_column_sats["des"]] == 1) * (data["Dkpc"] <= max_radius)
         des_class = data["MV"][s]
 
         # Combine the two for the joint extrapolation
-        MV_tot = np.append(MV_sdss, MV_des)
+        mv_tot = np.append(mv_sdss, mv_des)
         rad_tot = np.append(rad_sdss, rad_des)
         prob_tot = np.append(prob_sdss, prob_des)
         # Obtain classical satellites for the combined SDSS and DES surveys
-        s = (data[dic_columnSats["sdss"]] == 1) * (data["Dkpc"] <= maxRadius) + (
-            data[dic_columnSats["des"]] == 1
-        ) * (data["Dkpc"] <= maxRadius)
+        s = (data[dic_column_sats["sdss"]] == 1) * (data["Dkpc"] <= max_radius) + (
+            data[dic_column_sats["des"]] == 1
+        ) * (data["Dkpc"] <= max_radius)
         tot_class = data["MV"][s]
 
         # Obtain 11 brightest classical satellites that are complete
-        s = (data["Cl"] == 2) * (data["Dkpc"] <= maxRadius)
+        s = (data["Cl"] == 2) * (data["Dkpc"] <= max_radius)
         class_class = data["MV"][s]
 
         print(
             "There are {} satellites with magnitudes from {:0.1f} to "
-            "{:0.1f}".format(MV_tot.shape[0], MV_tot.min(), MV_tot.max())
+            "{:0.1f}".format(mv_tot.shape[0], mv_tot.min(), mv_tot.max())
         )
-        order = MV_sdss.argsort()
-        MV_sdss = MV_sdss[order]
+        order = mv_sdss.argsort()
+        mv_sdss = mv_sdss[order]
         prob_sdss = prob_sdss[order]
 
-        order = MV_des.argsort()
-        MV_des = MV_des[order]
+        order = mv_des.argsort()
+        mv_des = mv_des[order]
         prob_des = prob_des[order]
 
-        order = MV_tot.argsort()
-        MV_tot = MV_tot[order]
+        order = mv_tot.argsort()
+        mv_tot = mv_tot[order]
         prob_tot = prob_tot[order]
         """ Generate a set of lines-of-sight (LOS) for the central direction
         of the survey, uniformly distributed over the surface of a sphere."""
-        sdss_surveyDirs = uniformPointsOnSphereSurface(noSightings)
-        des_surveyDirs = second_pointings(sdss_surveyDirs)
+        sdss_survey_directions = uniform_points_on_sphere_surface(n_sightings)
+        des_survey_directions = second_pointings(sdss_survey_directions)
 
         # Compute the number of satellites using the 1st approach
         # Obtain magnitude bins
-        bins_MV = np.linspace(M_max, M_min, noBins_M + 1, True)
-        val_MV = 0.5 * (bins_MV[1:] + bins_MV[:-1])
-        sdss_bin = np.zeros((6 * noSightings, noBins_M), np.float32)
-        des_bin = np.zeros((6 * noSightings, noBins_M), np.float32)
-        tot_bin = np.zeros((6 * noSightings, noBins_M), np.float32)
+        bins_mv = np.linspace(mv_max, mv_min, n_bins_mv + 1, True)
+        val_mv = 0.5 * (bins_mv[1:] + bins_mv[:-1])
+        sdss_bin = np.zeros((6 * n_sightings, n_bins_mv), np.float32)
+        des_bin = np.zeros((6 * n_sightings, n_bins_mv), np.float32)
+        tot_bin = np.zeros((6 * n_sightings, n_bins_mv), np.float32)
 
         # Obtain bins for the individual satellites
-        sdss_MV = np.append(bins_MV[0] - 0.1, np.append(MV_sdss, bins_MV[-1] + 0.1))
-        sdss_Rmax = survey_Reff(
-            sdss_MV,
-            a=dic_Reff_params["sdss"]["a"],
-            b=dic_Reff_params["sdss"]["b"],
-            surveyArea=sdss_surveyArea,
+        sdss_mv = np.append(bins_mv[0] - 0.1, np.append(mv_sdss, bins_mv[-1] + 0.1))
+        sdss_rmax = survey_Reff(
+            sdss_mv,
+            a=dic_reff_params["sdss"]["a"],
+            b=dic_reff_params["sdss"]["b"],
+            survey_area=sdss_survey_area,
         )
         sdss_prob = np.append(0.0, np.append(prob_sdss, 0.0))
 
-        des_MV = np.append(bins_MV[0], np.append(MV_des, bins_MV[-1] + 0.1))
-        des_Rmax = survey_Reff(
-            des_MV,
-            a=dic_Reff_params["des"]["a"],
-            b=dic_Reff_params["des"]["b"],
-            surveyArea=des_surveyArea,
+        des_mv = np.append(bins_mv[0], np.append(mv_des, bins_mv[-1] + 0.1))
+        des_rmax = survey_Reff(
+            des_mv,
+            a=dic_reff_params["des"]["a"],
+            b=dic_reff_params["des"]["b"],
+            survey_area=des_survey_area,
         )
         des_prob = np.append(0.0, np.append(prob_des, 0.0))
 
-        tot_MV = np.append(bins_MV[0], np.append(MV_tot, bins_MV[-1] + 0.1))
+        tot_mv = np.append(bins_mv[0], np.append(mv_tot, bins_mv[-1] + 0.1))
         tot_prob = np.append(0.0, np.append(prob_tot, 0.0))
-        tot_Rmax_sdss = survey_Reff(
-            tot_MV,
-            a=dic_Reff_params["sdss"]["a"],
-            b=dic_Reff_params["sdss"]["b"],
-            surveyArea=sdss_surveyArea,
+        tot_rmax_sdss = survey_Reff(
+            tot_mv,
+            a=dic_reff_params["sdss"]["a"],
+            b=dic_reff_params["sdss"]["b"],
+            survey_area=sdss_survey_area,
         )
-        tot_Rmax_des = survey_Reff(
-            tot_MV,
-            a=dic_Reff_params["des"]["a"],
-            b=dic_Reff_params["des"]["b"],
-            surveyArea=des_surveyArea,
+        tot_rmax_des = survey_Reff(
+            tot_mv,
+            a=dic_reff_params["des"]["a"],
+            b=dic_reff_params["des"]["b"],
+            survey_area=des_survey_area,
         )
 
         print(
             "Looping over 6 observer positions with {} sightings for "
-            "each observer ...".format(noSightings)
+            "each observer ...".format(n_sightings)
         )
         for k in range(6):  # Loop over observer positions
             # Obtain observer position
-            pos_Sun = np.zeros(3, np.float32)
+            sun_position = np.zeros(3, np.float32)
             """ For k=0, sets observer to x=+Sun_dis, k=1 -> x=-Sun_dis,
             k->2 y=+Sun_dis, and so on. """
-            pos_Sun[int(k / 2)] = Sun_dis * (1 - 2 * (k % 2))
+            sun_position[int(k / 2)] = sun_distance * (1 - 2 * (k % 2))
             print(
                 "Observer loop k = {} with Sun position "
-                "at {} ".format(k + 1, pos_Sun)
+                "at {} ".format(k + 1, sun_position)
             )
 
             # Translate subhalo positions relative to the observer position
-            pos2 = pos + pos_Sun
+            pos2 = pos + sun_position
             # Calculate distance of the subhaloes from the observer
             dis = np.sqrt((pos2 * pos2).sum(axis=1))
-            select = dis <= maxRadius
+            select = dis <= max_radius
 
             # select the subhaloes within the required radius
             pos2 = pos2[select]
             dis = dis[select]
             index = np.arange(dis.shape[0])
 
-            for i in range(noSightings):  # Loop over the viewing directions
+            for i in range(n_sightings):  # Loop over the viewing directions
                 # Randomises the subhalo list for each viewing direction.
                 new_order = np.arange(len(pos2))
                 np.random.shuffle(new_order)
@@ -281,79 +281,101 @@ def main():
                 dis = dis[new_order]
                 """ SDSS """
                 # Select the subhaloes used for the extrapolation
-                select = np.random.rand(sdss_MV.shape[0]) >= sdss_prob
+                select = np.random.rand(sdss_mv.shape[0]) >= sdss_prob
                 """ If any satellites are associated to LMC, update the
             classical satellite count """
                 class_sats = update_classical_satellites(
-                    sdss_MV[select], sdss_MV[~select], sdss_class
+                    sdss_mv[select], sdss_mv[~select], sdss_class
                 )
-                sdss_bin[k * noSightings + i] = indiv_satellite_estimate(
+                sdss_bin[k * n_sightings + i] = indiv_satellite_estimate(
                     pos2,
                     dis,
                     index,
-                    sdss_surveyDirs[i, :],
-                    sdss_cos_surveyAngle,
-                    sdss_Rmax[select],
-                    sdss_MV[select],
+                    sdss_survey_directions[i, :],
+                    sdss_cos_survey_angle,
+                    sdss_rmax[select],
+                    sdss_mv[select],
                     class_sats,
-                    val_MV,
+                    val_mv,
                 )
                 """ DES """
                 # Select the subhaloes used for the extrapolation
-                select = np.random.rand(des_MV.shape[0]) >= des_prob
+                select = np.random.rand(des_mv.shape[0]) >= des_prob
                 """ If any satellites are associated to LMC, update the
                 classical satellite count """
                 class_sats = update_classical_satellites(
-                    des_MV[select], des_MV[~select], des_class
+                    des_mv[select], des_mv[~select], des_class
                 )
-                des_bin[k * noSightings + i] = indiv_satellite_estimate(
+                des_bin[k * n_sightings + i] = indiv_satellite_estimate(
                     pos2,
                     dis,
                     index,
-                    des_surveyDirs[i, :],
-                    des_cos_surveyAngle,
-                    des_Rmax[select],
-                    des_MV[select],
+                    des_survey_directions[i, :],
+                    des_cos_survey_angle,
+                    des_rmax[select],
+                    des_mv[select],
                     class_sats,
-                    val_MV,
+                    val_mv,
                 )
                 """ SDSS + DES """
                 # Select the subhaloes used for the extrapolation
-                select = np.random.rand(tot_MV.shape[0]) >= tot_prob
+                select = np.random.rand(tot_mv.shape[0]) >= tot_prob
                 """ If any satellites are associated to LMC, update the
                 classical satellite count """
                 class_sats = update_classical_satellites(
-                    tot_MV[select], tot_MV[~select], tot_class
+                    tot_mv[select], tot_mv[~select], tot_class
                 )
-                tot_bin[k * noSightings + i] = combined_satellite_estimate(
+                tot_bin[k * n_sightings + i] = combined_satellite_estimate(
                     pos2,
                     dis,
                     index,
-                    sdss_surveyDirs[i, :],
-                    sdss_cos_surveyAngle,
-                    tot_Rmax_sdss[select],
-                    des_surveyDirs[i, :],
-                    des_cos_surveyAngle,
-                    tot_Rmax_des[select],
-                    tot_MV[select],
+                    sdss_survey_directions[i, :],
+                    sdss_cos_survey_angle,
+                    tot_rmax_sdss[select],
+                    des_survey_directions[i, :],
+                    des_cos_survey_angle,
+                    tot_rmax_des[select],
+                    tot_mv[select],
                     class_sats,
-                    val_MV,
+                    val_mv,
                 )
 
         # Compile results
-        SDSS_data_out[grp_i] = output_data_format(val_MV, sdss_bin, class_class)
-        DES_data_out[grp_i] = output_data_format(val_MV, des_bin, class_class)
-        SDSSDES_data_out[grp_i] = output_data_format(val_MV, tot_bin, class_class)
+        sdss_data_out[grp_i] = output_data_format(val_mv, sdss_bin, class_class)
+        des_data_out[grp_i] = output_data_format(val_mv, des_bin, class_class)
+        sdssdes_data_out[grp_i] = output_data_format(val_mv, tot_bin, class_class)
 
     # SDSS
-    writeOutput(outputFile + "SDSS.hdf5", programOptionsDesc, SDSS_data_out, group_list)
+    write_output(
+        output_file + "SDSS.hdf5",
+        program_options_desc,
+        sdss_data_out,
+        group_list,
+        n_sightings,
+        max_radius,
+        min_vpeak,
+    )
 
     # DES
-    writeOutput(outputFile + "DES.hdf5", programOptionsDesc, DES_data_out, group_list)
+    write_output(
+        output_file + "DES.hdf5",
+        program_options_desc,
+        des_data_out,
+        group_list,
+        n_sightings,
+        max_radius,
+        min_vpeak,
+    )
 
     # DES + SDSS
-    writeOutput(
-        outputFile + "SDSS+DES.hdf5", programOptionsDesc, SDSSDES_data_out, group_list
+    write_output(
+        output_file + "SDSS+DES.hdf5",
+        program_options_desc,
+        sdssdes_data_out,
+        group_list,
+        n_sightings,
+        max_radius,
+        min_vpeak,
     )
 
     return None

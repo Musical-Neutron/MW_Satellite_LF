@@ -3,7 +3,7 @@
 import unittest
 
 import numpy as np
-from mwsatslf.tools import cartesian_to_spherical
+from mwsatslf.geometry import cartesian_to_spherical
 
 
 class CartesianToSphericalTests(unittest.TestCase):
