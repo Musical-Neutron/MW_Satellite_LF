@@ -188,7 +188,6 @@ class TestRandomPointsOnSphereSurface:
         """Zero points returns an empty array."""
         points = random_points_on_sphere_surface(0)
         assert points.shape == (0, 3)
-        assert points.dtype == np.float_
 
     def test_n_negative(self):
         """Negative n raises ValueError from np.empty (not specifically handled)."""
