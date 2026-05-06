@@ -60,7 +60,7 @@ def random_points_on_sphere_surface(n_points, cos_theta_min=None, cos_theta_max=
     Returns:
         Nx3 arr: Cartesian vector for each point.
     """
-    sph = np.empty((n_points, 3), np.float)
+    sph = np.empty((n_points, 3), float)
 
     if cos_theta_min is None or cos_theta_min < -1.0:
         cos_theta_min = -1.0
