@@ -5,7 +5,7 @@
 [project]
     authors=[{name="Oliver Newton", email="o.newton@surrey.ac.uk"}]
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",

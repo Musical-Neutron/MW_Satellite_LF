@@ -3,7 +3,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1205622.svg)](https://doi.org/10.5281/zenodo.1205622)
 [![Build and test](https://github.com/Musical-Neutron/MW_Satellite_LF/actions/workflows/test_package.yml/badge.svg?branch=master)](https://github.com/Musical-Neutron/MW_Satellite_LF/actions/workflows/test_package.yml)
 
-**Last reviewed:** v1.0.4
+**Last reviewed:** v1.0.5
 
 A code to calculate the luminosity function of Milky Way (MW) satellite galaxies
 using Approximate Bayesian Computation. The analysis uses as input only the
@@ -29,11 +29,19 @@ This package can be installed by cloning it from the github repository:
 
 ### 1.2 Tests
 
-If you plan to review the package test suite, run the following from the root
-directory
+If you plan to review the package test suite, run the following from the root directory:
+
+### Linux
 
 ```bash
     pip install .[test]
+    pytest
+```
+
+### MacOS
+
+```bash
+    pip install .'[test]'
     pytest
 ```
 
