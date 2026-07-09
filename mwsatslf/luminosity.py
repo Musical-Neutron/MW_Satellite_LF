@@ -76,7 +76,7 @@ def combined_satellite_estimate(
         elif j < mv.shape[0] - 1:
             # Typical case, where we have 1 observation
             index_min, index_max = _index[select][[0, 1]]
-            N_tot[j] = np.random.randint(index_min + 1, index_max + 1, 1)
+            N_tot[j] = np.random.randint(index_min + 1, index_max + 1)
 
             # Only keep subhaloes NOT used for the current estimate
             s2 = _index >= N_tot[j]
@@ -90,7 +90,7 @@ def combined_satellite_estimate(
             the graph. No observation so we make an estimate of how many
             satellites could be there."""
             index_max = _index[select][0]
-            N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1, 1)
+            N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1)
             # This is the last iteration, so no need to get rid of any
             # subhaloes as the arrays won't be used again.
 
@@ -155,7 +155,7 @@ def indiv_satellite_estimate(
         elif j < mv.shape[0] - 1:
             # Typical case, where we have 1 observation
             index_min, index_max = _index[select][[0, 1]]
-            N_tot[j] = np.random.randint(index_min + 1, index_max + 1, 1)
+            N_tot[j] = np.random.randint(index_min + 1, index_max + 1)
 
             # Only keep subhaloes NOT used for the current estimate
             s2 = _index >= N_tot[j]
@@ -168,7 +168,7 @@ def indiv_satellite_estimate(
             the graph. No observation so we make an estimate of how many
             satellites could be there."""
             index_max = _index[select][0]
-            N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1, 1)
+            N_tot[j] = np.random.randint(N_tot[j - 1], index_max + 1)
             # This is the last iteration, so no need to get rid of any
             # subhaloes as the arrays won't be used again.
 
