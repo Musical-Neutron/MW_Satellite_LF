@@ -11,13 +11,13 @@ class CartesianToSphericalTests(unittest.TestCase):
     def setUp(self) -> None:
         self.cart_vector = np.asarray([1.0, 2.5, 3.0])
         self.cart_vector_list = [1.0, 2.5, 3.0]
-        self.cart_vector_set = np.row_stack(([1.0, 2.5, 3.0], [2.5, 3.0, 3.5]))
+        self.cart_vector_set = np.vstack(([1.0, 2.5, 3.0], [2.5, 3.0, 3.5]))
         self.cart_vector_set_list = [[1.0, 2.5, 3.0], [2.5, 3.0, 3.5]]
 
         self.expected_sph_vector = np.asarray(
             [4.0311288741493, 0.73144738125492, 1.1902899496825]
         )
-        self.expected_sph_vector_set = np.row_stack(
+        self.expected_sph_vector_set = np.vstack(
             (
                 [4.0311288741493, 0.73144738125492, 1.1902899496825],
                 [5.2440442408508, 0.8400523908062, 0.87605805059819],
