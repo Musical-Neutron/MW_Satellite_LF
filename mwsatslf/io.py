@@ -69,7 +69,7 @@ def write_output(
         else:
             hf.create_dataset("Lum_Func", data=data_out[0], dtype="f4")
         grp = hf.create_group("Metadata")
-        grp.attrs["Program options"] = np.string_(program_options_description)
+        grp.attrs["Program options"] = np.bytes_(program_options_description)
         n_options = program_options_description.split()
         if len(n_options) >= 7:
             grp.attrs["Number of sightings"] = n_options[6]
